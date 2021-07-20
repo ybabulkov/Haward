@@ -14,7 +14,7 @@ path = os.getcwd()
 
 
 def create_file():
-	rewards_file = open("rewards_log.txt", "a")
+	rewards_file = open(f"{path}/rewards_log.txt", "a")
 	rewards_file.write("Read,Code,Workout,Mindfulness,Stretch\n0,0,0,0,0\n0.00")
 	return rewards_file
 
@@ -44,7 +44,7 @@ def reset():
 
 
 # -----------------------------------------------------------------------------------------------
-
+create_file()
 sg.theme("DarkAmber")
 menu_def = [["File", ["Reset", "Save", "Exit"]], ["Timer", ["Open timer"]]]
 layout = [
