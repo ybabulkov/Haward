@@ -13,12 +13,6 @@ import Timer
 path = os.getcwd()
 
 
-def create_file():
-	rewards_file = open(f"{path}/rewards_log.txt", "a")
-	rewards_file.write("Read,Code,Workout,Mindfulness,Stretch\n0,0,0,0,0\n0.00")
-	return rewards_file
-
-
 def calculate_overall_money(file_name, money_to_add):
 	with open(file_name) as file:
 		lines = file.readlines()
@@ -44,7 +38,12 @@ def reset():
 
 
 # -----------------------------------------------------------------------------------------------
-create_file()
+file = path + "/rewards_log.txt"
+if not os.path.isfile(file):
+	rewards_file = open(f"{path}/rewards_log.txt", "a")
+	rewards_file.write("Read,Code,Workout,Mindfulness,Stretch\n0,0,0,0,0\n0.00")
+	rewards_file.close()
+
 sg.theme("DarkAmber")
 menu_def = [["File", ["Reset", "Save", "Exit"]], ["Timer", ["Open timer"]]]
 layout = [
@@ -94,23 +93,20 @@ while True:
 			completed_habits += 1
 			progress_bar.update(completed_habits)
 			reward_for_the_day += reward_for_habit[habit]
+		if all(completed for completed in list(habits.values())):
+			reward_for_the_day = 5
+			all_completed_text("All habits completed!".rjust(35))
 
 	if event != sg.WINDOW_CLOSED and event not in ["Save", "Reset", "Open timer"]:
 		# in none of the habits are completed
 		if all(not completed for completed in list(habits.values())):
 			progress_bar.update(0)
 		# if all of the habits are completed
-		if all(completed for completed in list(habits.values())):
-			reward_for_the_day = 5
-			all_completed_text("All habits completed!".rjust(35))
 		else:
 			all_completed_text("Bonus reward for completing all habits!")
 
 	elif event == "Save":
 		# storing info into variables
-		file = path + "/rewards_log.txt"
-		if not os.path.isfile(file):
-			rewards_log = create_file()
 		with open(f"{path}/rewards_log.txt", 'r') as rewards_log:
 			data = rewards_log.readlines()
 			i = 0
@@ -119,8 +115,8 @@ while True:
 				i += 1
 
 		# updating the info in the file
-		overall_money = calculate_overall_money('rewards_log.txt', reward_for_the_day - float(values['Subtract']))
-		with open(f"{path}rewards_log.txt", 'w') as rewards_log:
+		overall_money = calculate_overall_money(f'{path}/rewards_log.txt', reward_for_the_day - float(values['Subtract']))
+		with open(f"{path}/rewards_log.txt", 'w') as rewards_log:
 			rewards_log.write(','.join(habit_days_completed.keys()))
 			rewards_log.write('\n')
 			rewards_log.write(','.join((map(str, habit_days_completed.values()))))
@@ -128,6 +124,7 @@ while True:
 		reset_checkboxes()
 		reward_amount("Reward = 0.00lv")
 		progress_bar.update(0)
+		continue
 
 	elif event == "Reset":
 		reset()
