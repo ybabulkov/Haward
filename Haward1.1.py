@@ -5,12 +5,18 @@ import numpy
 import Timer
 # TODO
 '''
-1. Make it adaptable to different directories for the files
+1. Add in app ability to change habit and timer reward values
 2. Subtract an amount from the current balance
 3. Fix timer (when closing main window the timer should close too)
 
 '''
-os.chdir(("D:\io4k0\Codes\SimpleHabitRewardSystem\dist"))
+path = os.getcwd()
+
+
+def create_file():
+	rewards_file = open("rewards_log.txt", "a")
+	rewards_file.write("Read,Code,Workout,Mindfulness,Stretch\n0,0,0,0,0\n0.00")
+	return rewards_file
 
 
 def calculate_overall_money(file_name, money_to_add):
@@ -27,7 +33,7 @@ def reset_checkboxes():
 
 
 def reset():
-	with open("rewards_log.txt", 'w') as rewards_file:
+	with open(f"{path}/rewards_log.txt", 'w') as rewards_file:
 		rewards_file.write(','.join(reward_for_habit.keys()))
 		rewards_file.write('\n0,0,0,0,0')
 		rewards_file.write('\n0.0')
@@ -51,7 +57,7 @@ layout = [
 		  [sg.ProgressBar(5, orientation='h', size=(27, 30), key='progressbar', pad=(2, 10))],
 		  [sg.Text("Bonus reward for completing all habits!", size=(35, 2), key='completed_text', pad=((60, 0), 2))],
 		  [sg.Text("Reward = 0 lv", size=(12, 1), key='reward_amount')],
-		  [sg.Text(f"Balance: {calculate_overall_money('rewards_log.txt', 0)} lv", size=(15, 1), key='money_earned'),
+		  [sg.Text(f"Balance: {calculate_overall_money(f'{path}/rewards_log.txt', 0)} lv", size=(15, 1), key='money_earned'),
 		   sg.Spin([i for i in numpy.arange(0, 100, 0.1)], key="Subtract", initial_value=0,
 		   size=(5, 4), pad=((60, 0), 0), enable_events=True),
 		   sg.Text("Subtract from balance", size=(16, 1))]
@@ -65,7 +71,7 @@ reward_amount = window['reward_amount']
 money_earned = window['money_earned']
 
 # stores the amount of lv that is rewarded upon completion of the habit
-reward_for_habit = {"Read": 0.4, "Code": 0.6, "Workout": 0.5, "Mindfulness": 0.3, "Stretch": 0.3}
+reward_for_habit = {"Read": 0.6, "Code": 0.8, "Workout": 0.8, "Mindfulness": 0.5, "Stretch": 0.5}
 timer = Timer.__call__()
 timer_reward = 0.0
 
@@ -90,20 +96,22 @@ while True:
 			reward_for_the_day += reward_for_habit[habit]
 
 	if event != sg.WINDOW_CLOSED and event not in ["Save", "Reset", "Open timer"]:
-
 		# in none of the habits are completed
 		if all(not completed for completed in list(habits.values())):
 			progress_bar.update(0)
 		# if all of the habits are completed
 		if all(completed for completed in list(habits.values())):
-			reward_for_the_day = 4
+			reward_for_the_day = 5
 			all_completed_text("All habits completed!".rjust(35))
 		else:
 			all_completed_text("Bonus reward for completing all habits!")
 
 	elif event == "Save":
 		# storing info into variables
-		with open("rewards_log.txt", 'r') as rewards_log:
+		file = path + "/rewards_log.txt"
+		if not os.path.isfile(file):
+			rewards_log = create_file()
+		with open(f"{path}/rewards_log.txt", 'r') as rewards_log:
 			data = rewards_log.readlines()
 			i = 0
 			for habit in habit_days_completed.keys():
@@ -112,7 +120,7 @@ while True:
 
 		# updating the info in the file
 		overall_money = calculate_overall_money('rewards_log.txt', reward_for_the_day - float(values['Subtract']))
-		with open("rewards_log.txt", 'w') as rewards_log:
+		with open(f"{path}rewards_log.txt", 'w') as rewards_log:
 			rewards_log.write(','.join(habit_days_completed.keys()))
 			rewards_log.write('\n')
 			rewards_log.write(','.join((map(str, habit_days_completed.values()))))
@@ -133,5 +141,5 @@ while True:
 
 	reward_for_the_day += timer_reward
 	reward_amount(f"Reward = {reward_for_the_day:.2f} lv")
-	money_earned(f"Balance: {calculate_overall_money('rewards_log.txt', reward_for_the_day - float(values['Subtract'])):.2f} lv")
+	money_earned(f"Balance: {calculate_overall_money(f'{path}/rewards_log.txt', reward_for_the_day - float(values['Subtract'])):.2f} lv")
 window.close()
