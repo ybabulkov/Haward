@@ -1,2 +1,3 @@
 # Haward
-Habit reward system
+Desktop application written on Python, using PySimpleGUI
+* Habit reward system
